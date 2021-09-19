@@ -596,7 +596,22 @@ const templateDefinitions = `
 							<td>
 								<ul>
 								{{ range $index, $test := $branch.Tests }}
-									<li><nobr><a href="/job?org={{$org.Name}}&repo={{$repo.Name}}&branch={{$branch.Name}}&test={{$test}}" style="font-family:monospace">{{$test}}</a></nobr></li>
+                                <li>
+                                    <nobr>
+                                        <a href="/job?org={{$org.Name}}&repo={{$repo.Name}}&branch={{$branch.Name}}&test={{$test.Name}}" style="font-family:monospace">
+                                            {{$test.Name}}</a>
+                                        {{ if $test.Periodic }}
+                                            <span style="border: 1px solid black; border-radius: 5px; padding: 2px; margin: 1px; font-size: 12px">
+                                                Periodic
+                                            </span>
+                                        {{ end }}
+                                        {{ if $test.Optional }}
+                                            <span style="border: 1px solid black; border-radius: 5px; padding: 2px; margin: 1px; font-size: 12px">
+                                                Optional
+                                            </span>
+                                        {{ end }}
+                                    </nobr>
+                                </li>
 								{{ end }}
 								</ul>
 							</td>
@@ -648,14 +663,21 @@ type Repo struct {
 
 type Branch struct {
 	Name     string
-	Tests    []string
+	Tests    []Test
 	Variants []Variant
 }
 
 type Variant struct {
 	Name  string
-	Tests []string
+	Tests []Test
 }
+
+type Test struct {
+	Name     string
+	Optional bool
+	Periodic bool
+}
+
 
 func repoSpan(r Repo, containsVariant bool) int {
 	if !containsVariant {
@@ -1555,7 +1577,7 @@ func jobHandler(regAgent agents.RegistryAgent, confAgent agents.ConfigAgent, w h
 }
 
 // addJob adds a test to the specified org, repo, and branch in the Jobs struct in alphabetical order
-func (j *Jobs) addJob(orgName, repoName, branchName, variantName, testName string) {
+func (j *Jobs) addJob(orgName, repoName, branchName, variantName string, test Test) {
 	orgIndex := 0
 	orgExists := false
 	for _, currOrg := range j.Orgs {
@@ -1626,15 +1648,14 @@ func (j *Jobs) addJob(orgName, repoName, branchName, variantName, testName strin
 	// a single test shouldn't be added multiple times, but that case should be handled correctly just in case
 	testIndex := 0
 	testExists := false
-	var testsArr []string
+	var testsArr []Test
 	if variantIndex == -1 {
 		testsArr = j.Orgs[orgIndex].Repos[repoIndex].Branches[branchIndex].Tests
 	} else {
-
 		testsArr = j.Orgs[orgIndex].Repos[repoIndex].Branches[branchIndex].Variants[variantIndex].Tests
 	}
-	for _, currTestName := range testsArr {
-		if diff := strings.Compare(currTestName, testName); diff == 0 {
+	for _, currTest := range testsArr {
+		if diff := strings.Compare(currTest.Name, test.Name); diff == 0 {
 			testExists = true
 			break
 		} else if diff > 0 {
@@ -1644,9 +1665,9 @@ func (j *Jobs) addJob(orgName, repoName, branchName, variantName, testName strin
 	}
 	if !testExists {
 		if variantIndex == -1 {
-			j.Orgs[orgIndex].Repos[repoIndex].Branches[branchIndex].Tests = append(testsArr[:testIndex], append([]string{testName}, testsArr[testIndex:]...)...)
+			j.Orgs[orgIndex].Repos[repoIndex].Branches[branchIndex].Tests = append(testsArr[:testIndex], append([]Test{test}, testsArr[testIndex:]...)...)
 		} else {
-			j.Orgs[orgIndex].Repos[repoIndex].Branches[branchIndex].Variants[variantIndex].Tests = append(testsArr[:testIndex], append([]string{testName}, testsArr[testIndex:]...)...)
+			j.Orgs[orgIndex].Repos[repoIndex].Branches[branchIndex].Variants[variantIndex].Tests = append(testsArr[:testIndex], append([]Test{test}, testsArr[testIndex:]...)...)
 		}
 	}
 }
@@ -1658,9 +1679,18 @@ func getAllMultiStageTests(confAgent agents.ConfigAgent) *Jobs {
 	for org, orgConfigs := range configs {
 		for repo, repoConfigs := range orgConfigs {
 			for _, releaseConfig := range repoConfigs {
-				for _, test := range releaseConfig.Tests {
-					if test.MultiStageTestConfiguration != nil {
-						jobs.addJob(org, repo, releaseConfig.Metadata.Branch, releaseConfig.Metadata.Variant, test.As)
+				for _, testConfig := range releaseConfig.Tests {
+                    test := Test {
+                        Name: testConfig.As,
+                        Optional: testConfig.Optional,
+                    }
+
+                    if testConfig.Cron != nil {
+                        test.Periodic = true
+                    }
+
+					if testConfig.MultiStageTestConfiguration != nil {
+						jobs.addJob(org, repo, releaseConfig.Metadata.Branch, releaseConfig.Metadata.Variant, test)
 					}
 				}
 			}
