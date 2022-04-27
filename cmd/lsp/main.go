@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -130,6 +131,32 @@ func ReadFile(filename defines.DocumentUri) ([]string, error) {
 	return line, nil
 }
 
+func rescan(registryPath string, comps []string, filename string) string {
+	for joinLength := 2; joinLength < len(comps); joinLength++ {
+		for joinPosition := 0; joinPosition <= len(comps) - joinLength; joinPosition++ {
+			newComps := []string{}
+			for k := 0; k < joinPosition; k++ {
+				newComps = append(newComps, comps[k])
+			}
+
+			newComps = append(newComps, strings.Join(comps[joinPosition:joinPosition + joinLength], "-"))
+
+			for k := joinPosition + joinLength; k < len(comps); k++ {
+				newComps = append(newComps, comps[k])
+			}
+
+			directory := path.Join(append([]string{registryPath}, newComps...)...)
+			full_path := path.Join(directory, filename)
+
+			if _, err := os.Stat(full_path); err == nil {
+				return full_path
+			}
+		}
+	}
+
+	return ""
+}
+
 func server() *lsp.Server {
 	server := lsp.NewServer(
 		&lsp.Options{
@@ -247,8 +274,16 @@ func server() *lsp.Server {
 
 		directory := path.Join(append([]string{registryPath}, comps...)...)
 		filename := strings.Join(append(comps, key), "-") + extension
+		full_path := path.Join(directory, filename)
+
+		if _, err := os.Stat(full_path); err == nil {
+			full_path = full_path
+		} else if errors.Is(err, os.ErrNotExist) {
+			full_path = rescan(registryPath, comps, filename)
+		}
+
 		location := defines.LocationLink{
-			TargetUri: defines.DocumentUri("file://" + path.Join(directory, filename)),
+			TargetUri: defines.DocumentUri("file://" + full_path),
 		}
 		locations := []defines.LocationLink{location}
 		return &locations, nil
