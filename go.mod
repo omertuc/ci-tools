@@ -185,6 +185,7 @@ require (
 	github.com/openshift/installer v1.4.17
 	github.com/openshift/library-go v0.0.0-20240919205913-c96b82b3762b
 	github.com/ovn-org/ovn-kubernetes/go-controller v0.0.0-20240710195803-425a328cd172
+	github.com/owenrumney/go-lsp v0.2.3
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.11.1
 	gopkg.in/evanphx/json-patch.v5 v5.9.0

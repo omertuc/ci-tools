@@ -914,6 +914,8 @@ github.com/openshift/openshift-apiserver v0.0.0-alpha.0 h1:Wk9BYBcIhamxOrK9OyNbm
 github.com/openshift/openshift-apiserver v0.0.0-alpha.0/go.mod h1:c/cKFsTkfxQC+RhDNdKBwLhPS9ytARfzSiotFRDOFWE=
 github.com/ovn-org/ovn-kubernetes/go-controller v0.0.0-20240710195803-425a328cd172 h1:ZvyylzsX7bEpJOq8upPRQRpVJBI8mp/YTCica9PIRAc=
 github.com/ovn-org/ovn-kubernetes/go-controller v0.0.0-20240710195803-425a328cd172/go.mod h1:iB/BtAuFB/szaGWsa5xPDJHpaXrseVCIXyDfq4l8tjY=
+github.com/owenrumney/go-lsp v0.2.3 h1:k1hM0BHdm8dInShHVeGHfGItCem0ZP8fqT9v46CMI8Q=
+github.com/owenrumney/go-lsp v0.2.3/go.mod h1:+3+U1+SZ+wgGXHaAPPieRORYiSkritQBeHzoSCiwL34=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
 github.com/pelletier/go-toml v1.8.1/go.mod h1:T2/BmBdy8dvIRq1a/8aqjN41wvWlN4lrapLU/GW4pbc=

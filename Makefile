@@ -95,6 +95,10 @@ install: cmd/vault-secret-collection-manager/index.js
 	go install $(VERBOSE)./cmd/...
 .PHONY: install
 
+lsp:
+	go install ./cmd/ocp-release-lsp
+.PHONY: lsp
+
 cmd/vault-secret-collection-manager/index.js: cmd/vault-secret-collection-manager/index.ts
 	hack/compile-typescript.sh
 
